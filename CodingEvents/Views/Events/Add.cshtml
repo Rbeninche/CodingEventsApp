@@ -5,6 +5,7 @@
 <h1>Add Events</h1>
 
 <form asp-controller="Events" asp-action="Add" method="post">
+    <div class="validation-summary-errors" asp-validation-summary="All"></div>
     <div class="form-group">
         <label asp-for="Name"></label>
         <input asp-for="Name" class="form-control" id="name" placeholder="Enter Event Name">
@@ -18,6 +19,18 @@
     <div class="form-group">
         <label asp-for="ContactEmail"> Contact Email</label>
         <input asp-for="ContactEmail" class="form-control" id="description" placeholder="Email">
+    </div>
+    <div class="form-group">
+        <label asp-for="Location"> Location</label>
+        <input asp-for="Location" class="form-control" id="description" placeholder="Location">
+    </div>
+    <div class="form-group">
+        <label asp-for="NumberOfAttendees"> Num of Attendees</label>
+        <input asp-for="NumberOfAttendees" class="form-control" id="description" placeholder="# of attendees">
+    </div>
+    <div class="form-group">
+        <label asp-for="RegistrationRequired"> Registration required?</label>
+        <input asp-for="RegistrationRequired" class="form-control" id="description">
     </div>
     <input type="submit" class="btn btn-primary" value="Add Event" />
 </form>
