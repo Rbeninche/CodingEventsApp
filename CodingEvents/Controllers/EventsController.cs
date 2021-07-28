@@ -1,5 +1,6 @@
 ﻿using CodingEvents.Data;
 using CodingEvents.Models;
+using CodingEvents.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -17,23 +18,37 @@ namespace CodingEvents.Controllers
             //Events.Add("Strange Loop");
             //Events.Add("Grace Hopper");
             //Events.Add("Code with Pride");
-            ViewBag.events = EventData.GetAll();
-            return View();
+            List<Event> events = new List<Event>(EventData.GetAll());
+            return View(events);
         }
 
         [HttpGet]
         public IActionResult Add()
         {
-            return View();
+            AddEventViewModel addEventViewModel = new AddEventViewModel();
+            return View(addEventViewModel);
 
         }
 
         [HttpPost]
-        [Route("/Events/Add")]
-        public IActionResult NewEvents(Event newEvent)
+        public IActionResult Add(AddEventViewModel addEventViewModel)
         {
-            EventData.Add(newEvent);
-            return Redirect("/Events");
+            if (ModelState.IsValid)
+            {
+                Event newEvent = new Event
+                {
+                    Name = addEventViewModel.Name,
+                    Description = addEventViewModel.Description,
+                    ContactEmail = addEventViewModel.ContactEmail
+
+                };
+
+                EventData.Add(newEvent);
+                return Redirect("/Events");
+
+            }
+            return View(addEventViewModel);
+            
         }
 
         public IActionResult Delete()
