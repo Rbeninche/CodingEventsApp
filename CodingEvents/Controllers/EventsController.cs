@@ -11,6 +11,14 @@ namespace CodingEvents.Controllers
 {
     public class EventsController : Controller
     {
+
+        private EventDbContext _context;
+
+        public EventsController(EventDbContext context)
+        {
+            _context = context;
+
+        }
         
         [HttpGet]
         public IActionResult Index()
@@ -18,7 +26,7 @@ namespace CodingEvents.Controllers
             //Events.Add("Strange Loop");
             //Events.Add("Grace Hopper");
             //Events.Add("Code with Pride");
-            List<Event> events = new List<Event>(EventData.GetAll());
+            List<Event> events = _context.Events.ToList();
             return View(events);
         }
 
@@ -39,12 +47,15 @@ namespace CodingEvents.Controllers
                 {
                     Name = addEventViewModel.Name,
                     Description = addEventViewModel.Description,
-                    ContactEmail = addEventViewModel.ContactEmail
+                    ContactEmail = addEventViewModel.ContactEmail,
+                    Type = addEventViewModel.Type
+                    
 
                 };
 
-                EventData.Add(newEvent);
-                return Redirect("/Events");
+                _context.Events.Add(newEvent);
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Index));
 
             }
             return View(addEventViewModel);
@@ -53,8 +64,8 @@ namespace CodingEvents.Controllers
 
         public IActionResult Delete()
         {
-            ViewBag.events = EventData.GetAll();
-            return View();
+            List<Event> events = _context.Events.ToList();
+            return View(events);
         }
 
         [HttpPost]
@@ -62,30 +73,53 @@ namespace CodingEvents.Controllers
         {
             foreach (int eventId in eventIds)
             {
-                EventData.Remove(eventId);
+                Event theevent = _context.Events.Find(eventId);
+                _context.Events.Remove(theevent);
             }
 
-            return Redirect("/Events");
+            _context.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Edit(int id)
+        public IActionResult Edit(int? id)
         {
-            ViewBag.name = EventData.GetAll().Where(x => x.Id == id).FirstOrDefault().Name;
-            ViewBag.description = EventData.GetAll().Where(x => x.Id == id).FirstOrDefault().Description;
-            ViewBag.id = EventData.GetAll().Where(x => x.Id == id).FirstOrDefault().Id;
+            Event theEvent = _context.Events.Find(id);
 
-            return View();
+            AddEventViewModel eventToEdit = new AddEventViewModel();
+
+            eventToEdit.Name = theEvent.Name;
+            eventToEdit.Description = theEvent.Description;
+            eventToEdit.ContactEmail = theEvent.ContactEmail;
+            eventToEdit.Type= theEvent.Type;
+
+
+
+
+            return View(eventToEdit);
         }
 
         [HttpPost]
-        public IActionResult Edit(int id, Event newEvent)
+        public IActionResult Edit(int id, AddEventViewModel addEventViewModel)
         {
-            var evt = EventData.GetAll().Where(x => x.Id == id).FirstOrDefault();
 
-            evt.Name = newEvent.Name;
-            evt.Description = newEvent.Description;
+            Event theEvent = _context.Events.Find(id);
 
-            return Redirect("/Events");
+            if (ModelState.IsValid)
+            {
+
+                theEvent.Name = addEventViewModel.Name;
+                theEvent.Description = addEventViewModel.Description;
+                theEvent.ContactEmail = addEventViewModel.ContactEmail;
+                theEvent.Type = addEventViewModel.Type;
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Index));
+
+
+            }
+
+            
+            return View(addEventViewModel);
         }
     }
 }
