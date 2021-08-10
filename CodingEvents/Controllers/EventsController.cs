@@ -2,6 +2,7 @@
 using CodingEvents.Models;
 using CodingEvents.ViewModel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,14 +27,16 @@ namespace CodingEvents.Controllers
             //Events.Add("Strange Loop");
             //Events.Add("Grace Hopper");
             //Events.Add("Code with Pride");
-            List<Event> events = _context.Events.ToList();
+            List<Event> events = _context.Events.Include(e => e.Category).ToList();
             return View(events);
         }
 
+      
         [HttpGet]
         public IActionResult Add()
         {
-            AddEventViewModel addEventViewModel = new AddEventViewModel();
+            List<EventCategory> categories = _context.Categories.ToList();
+            AddEventViewModel addEventViewModel = new AddEventViewModel(categories);
             return View(addEventViewModel);
 
         }
@@ -41,14 +44,17 @@ namespace CodingEvents.Controllers
         [HttpPost]
         public IActionResult Add(AddEventViewModel addEventViewModel)
         {
+            List<EventCategory> categories = _context.Categories.ToList();
+            AddEventViewModel addEventViewMode = new AddEventViewModel(categories);
             if (ModelState.IsValid)
             {
+                EventCategory theCategory = _context.Categories.Find(addEventViewModel.CategoryId);
                 Event newEvent = new Event
                 {
                     Name = addEventViewModel.Name,
                     Description = addEventViewModel.Description,
                     ContactEmail = addEventViewModel.ContactEmail,
-                    Type = addEventViewModel.Type
+                    Category = theCategory
                     
 
                 };
@@ -58,7 +64,7 @@ namespace CodingEvents.Controllers
                 return RedirectToAction(nameof(Index));
 
             }
-            return View(addEventViewModel);
+            return View(addEventViewMode);
             
         }
 
@@ -86,12 +92,13 @@ namespace CodingEvents.Controllers
         {
             Event theEvent = _context.Events.Find(id);
 
-            AddEventViewModel eventToEdit = new AddEventViewModel();
+            List<EventCategory> categories = _context.Categories.ToList();
+            AddEventViewModel eventToEdit = new AddEventViewModel(categories);
 
             eventToEdit.Name = theEvent.Name;
             eventToEdit.Description = theEvent.Description;
             eventToEdit.ContactEmail = theEvent.ContactEmail;
-            eventToEdit.Type= theEvent.Type;
+            eventToEdit.CategoryId= theEvent.Category.Id;
 
 
 
@@ -111,7 +118,7 @@ namespace CodingEvents.Controllers
                 theEvent.Name = addEventViewModel.Name;
                 theEvent.Description = addEventViewModel.Description;
                 theEvent.ContactEmail = addEventViewModel.ContactEmail;
-                theEvent.Type = addEventViewModel.Type;
+                theEvent.CategoryId = addEventViewModel.CategoryId;
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
 
@@ -120,6 +127,21 @@ namespace CodingEvents.Controllers
 
             
             return View(addEventViewModel);
+        }
+
+        public IActionResult Detail(int id)
+        {
+            Event theEvent = _context.Events
+               .Include(e => e.Category)
+               .Single(e => e.Id == id);
+
+            List<EventTag> eventTags = _context.EventTags
+                .Where(et => et.EventId == id)
+                .Include(et => et.Tag)
+                .ToList();
+
+            EventDetailViewModel viewModel = new EventDetailViewModel(theEvent, eventTags);
+            return View(viewModel);
         }
     }
 }

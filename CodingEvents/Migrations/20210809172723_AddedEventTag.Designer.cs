@@ -3,14 +3,16 @@ using CodingEvents.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CodingEvents.Migrations
 {
     [DbContext(typeof(EventDbContext))]
-    partial class EventDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210809172723_AddedEventTag")]
+    partial class AddedEventTag
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -94,7 +96,7 @@ namespace CodingEvents.Migrations
             modelBuilder.Entity("CodingEvents.Models.Event", b =>
                 {
                     b.HasOne("CodingEvents.Models.EventCategory", "Category")
-                        .WithMany()
+                        .WithMany("events")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -119,6 +121,11 @@ namespace CodingEvents.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("Tag");
+                });
+
+            modelBuilder.Entity("CodingEvents.Models.EventCategory", b =>
+                {
+                    b.Navigation("events");
                 });
 #pragma warning restore 612, 618
         }
